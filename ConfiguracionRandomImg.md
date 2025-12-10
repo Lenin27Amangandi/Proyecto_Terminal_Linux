@@ -246,7 +246,6 @@ fastfetch
 
 ---
 
-## Ejemplo de flujo visual
 
 
 
