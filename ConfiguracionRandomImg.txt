@@ -43,3 +43,9 @@ if [[ $- == *i* ]]; then
     fastfetch
 fi
 
+--- 
+Errores
+sed: no se puede leer /home/xander/.config/fastfetch/config.json: No existe el archivo o el directori
+
+
+
