@@ -40,7 +40,7 @@ choose_fastfetch_logo() {
 # --- Ejecutar fastfetch solo en shell interactiva ---
 if [[ $- == *i* ]]; then
     choose_fastfetch_logo
-    fastfetch
+    fastfetch --wrap-width $(tput cols)
 fi
 
 --- 
