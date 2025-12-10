@@ -1,0 +1,22 @@
+nano ~/.zshrc
+
+# --- Seleccionar imagen aleatoria para Fastfetch ---
+choose_fastfetch_logo() {
+    # Carpeta donde están las imágenes
+    local img_dir="$HOME/.config/fastfetch/assets"
+
+    # Elegir imagen aleatoria
+    local random_img=$(ls "$img_dir" | shuf -n 1)
+
+    # Ruta completa
+    local img_path="$img_dir/$random_img"
+
+    # Reemplazar la línea del logo en config.json
+    sed -i "s#\"source\": \".*\"#\"source\": \"$img_path\"#" "$HOME/.config/fastfetch/config.json"
+}
+
+
+if [[ $- == *i* ]]; then
+    choose_fastfetch_logo
+    fastfetch
+fi
