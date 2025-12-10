@@ -20,3 +20,26 @@ if [[ $- == *i* ]]; then
     choose_fastfetch_logo
     fastfetch
 fi
+
+--- 
+Primero en el zsh
+
+# --- Función para elegir logo aleatorio ---
+
+nano ~/.zshrc
+
+choose_fastfetch_logo() {
+    local img_dir="$HOME/.config/fastfetch/assets"
+    local random_img=$(ls "$img_dir" | shuf -n 1)
+    local img_path="$img_dir/$random_img"
+
+    # Reemplaza la línea "source" en config.json
+    sed -i "s#\"source\": \".*\"#\"source\": \"$img_path\"#" "$HOME/.config/fastfetch/config.json"
+}
+
+# --- Ejecutar fastfetch solo en shell interactiva ---
+if [[ $- == *i* ]]; then
+    choose_fastfetch_logo
+    fastfetch
+fi
+
