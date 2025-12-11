@@ -310,7 +310,7 @@ choose_fastfetch_logo() {
 ```
 
 ---
-## Guardando la ultima pero a costa de que se repitan las imagenes
+## Version 7 Guardando la ultima pero a costa de que se repitan las imagenes
 ```bash
 
 # ===== Fastfetch: Logo aleatorio automático =====
@@ -330,6 +330,44 @@ choose_fastfetch_logo() {
     if [ ${#all_images[@]} -gt 0 ]; then
         # Seleccionar 5 imágenes aleatorias sin repetir
         selected_images=($(shuf -e "${all_images[@]}" -n $MAX_HISTORY))
+
+        # Elegir una imagen aleatoria de las seleccionadas
+        random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"
+
+        # Actualizar config.jsonc con la imagen seleccionada
+        if [ -f "$CONFIG_FILE" ]; then
+            sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
+        fi
+    fi
+}
+
+# Ejecutar la aplicación de Fastfetch cada vez que se abre una terminal
+if [[ $- == *i* ]]; then
+    choose_fastfetch_logo
+    fastfetch
+fi
+
+```
+---
+## Version 7 
+
+```bash
+# ===== Fastfetch: Logo aleatorio automático =====
+ASSETS_DIR="$HOME/.config/fastfetch/assets"
+CONFIG_FILE="$HOME/.config/fastfetch/config.jsonc"
+
+# Crear carpetas si no existen
+mkdir -p "$ASSETS_DIR"
+
+# Elegir imágenes aleatorias de la carpeta de imágenes
+choose_fastfetch_logo() {
+    # Listar todas las imágenes disponibles
+    all_images=($(find "$ASSETS_DIR" -type f))
+
+    # Si no hay imágenes, no hacer nada
+    if [ ${#all_images[@]} -gt 0 ]; then
+        # Seleccionar todas las imágenes aleatorias disponibles
+        selected_images=($(shuf -e "${all_images[@]}"))
 
         # Elegir una imagen aleatoria de las seleccionadas
         random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"
