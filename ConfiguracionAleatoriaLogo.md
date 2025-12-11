@@ -250,3 +250,61 @@ fi
 trap clear_history_on_exit EXIT
 
 ```
+## Intento Numero 6 de que funcione la seleccion aleatoria
+
+```bash
+# Elegir imágenes aleatorias de la carpeta de imágenes
+choose_fastfetch_logo() {
+    # Definir la imagen predeterminada (la que se usará cuando el historial esté vacío)
+    DEFAULT_IMAGE="$HOME/.config/fastfetch/assets/imagen_predeterminada.png"
+
+    # Listar todas las imágenes disponibles
+    all_images=($(find "$ASSETS_DIR" -type f))
+
+    # Si no hay imágenes, no hacer nada
+    if [ ${#all_images[@]} -gt 0 ]; then
+        # Leer historial de imágenes usadas
+        used_images=($(cat "$HISTORY_FILE"))
+
+        # Filtrar imágenes que no hayan sido usadas
+        available_images=()
+        for img in "${all_images[@]}"; do
+            skip=false
+            for used in "${used_images[@]}"; do
+                [[ "$img" == "$used" ]] && skip=true && break
+            done
+            $skip || available_images+=("$img")
+        done
+
+        # Si ya se usaron todas las imágenes disponibles, reiniciar el historial
+        if [ ${#available_images[@]} -eq 0 ]; then
+            available_images=("${all_images[@]}")  # Usar todas las imágenes
+            > "$HISTORY_FILE"  # Limpiar historial
+        fi
+
+        # Si hay menos de 5 imágenes, seleccionar todas las disponibles
+        if [ ${#available_images[@]} -lt $MAX_HISTORY ]; then
+            selected_images=("${available_images[@]}")  # Seleccionar todas las imágenes disponibles
+        else
+            # Seleccionar 5 imágenes aleatorias sin repetir
+            selected_images=($(shuf -e "${available_images[@]}" -n $MAX_HISTORY))
+        fi
+
+        # Guardar las imágenes seleccionadas en el historial
+        echo "${selected_images[@]}" > "$HISTORY_FILE"
+
+        # Elegir una imagen aleatoria de las seleccionadas
+        random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"
+
+        # Si es el primer ciclo, asignar la imagen aleatoria
+        if [ ! -f "$HISTORY_FILE" ] || [ ! -s "$HISTORY_FILE" ]; then
+            random_img="$DEFAULT_IMAGE"
+        fi
+
+        # Actualizar config.jsonc con la imagen seleccionada
+        if [ -f "$CONFIG_FILE" ]; then
+            sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
+        fi
+    fi
+}
+```
