@@ -178,3 +178,75 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 ```
+## Intento Numero 5 de que funcione la seleccion aleatoria
+
+```bash
+# ===== Fastfetch: Logo aleatorio automático =====
+HISTORY_FILE="$HOME/.config/fastfetch/used_logos.txt"
+ASSETS_DIR="$HOME/.config/fastfetch/assets"
+CONFIG_FILE="$HOME/.config/fastfetch/config.jsonc"
+MAX_HISTORY=5  # Solo recordar las últimas 5 imágenes
+
+# Crear carpetas y archivo de historial si no existen
+mkdir -p "$ASSETS_DIR"
+touch "$HISTORY_FILE"
+
+# Elegir 5 imágenes aleatorias de la carpeta de imágenes
+choose_fastfetch_logo() {
+    # Listar todas las imágenes disponibles
+    all_images=($(find "$ASSETS_DIR" -type f))
+
+    # Si no hay imágenes, no hacer nada
+    if [ ${#all_images[@]} -gt 0 ]; then
+        # Leer historial de imágenes usadas
+        used_images=($(cat "$HISTORY_FILE"))
+
+        # Filtrar imágenes que no hayan sido usadas
+        available_images=()
+        for img in "${all_images[@]}"; do
+            skip=false
+            for used in "${used_images[@]}"; do
+                [[ "$img" == "$used" ]] && skip=true && break
+            done
+            $skip || available_images+=("$img")
+        done
+
+        # Si ya se usaron todas las imágenes disponibles, reiniciar el historial
+        if [ ${#available_images[@]} -eq 0 ]; then
+            available_images=("${all_images[@]}")  # Usar todas las imágenes
+            > "$HISTORY_FILE"  # Limpiar historial
+        fi
+
+        # Seleccionar 5 imágenes aleatorias sin repetir
+        selected_images=($(shuf -e "${available_images[@]}" -n $MAX_HISTORY))
+
+        # Guardar las imágenes seleccionadas en el historial
+        echo "${selected_images[@]}" > "$HISTORY_FILE"
+
+        # Elegir una imagen aleatoria de las seleccionadas
+        random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"
+
+        # Actualizar config.jsonc con la imagen seleccionada
+        if [ -f "$CONFIG_FILE" ]; then
+            sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
+        fi
+    fi
+}
+
+# Función para limpiar el historial cuando se cierra la terminal
+clear_history_on_exit() {
+    if [ -f "$HISTORY_FILE" ]; then
+        > "$HISTORY_FILE"  # Eliminar el contenido del archivo de historial
+    fi
+}
+
+# Ejecutar la aplicación de Fastfetch cada vez que se abre una terminal
+if [[ $- == *i* ]]; then
+    choose_fastfetch_logo
+    fastfetch
+fi
+
+# Limpiar el historial cuando la terminal se cierre (trap en zsh)
+trap clear_history_on_exit EXIT
+
+```
