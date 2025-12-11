@@ -308,8 +308,11 @@ choose_fastfetch_logo() {
     fi
 }
 ```
+
+---
+## Guardando la ultima
 ```bash
-#!/bin/bash
+# ===== Fastfetch: Logo aleatorio automático =====
 HISTORY_FILE="$HOME/.config/fastfetch/used_logos.txt"
 ASSETS_DIR="$HOME/.config/fastfetch/assets"
 CONFIG_FILE="$HOME/.config/fastfetch/config.jsonc"
@@ -348,7 +351,14 @@ choose_fastfetch_logo() {
         # Seleccionar 5 imágenes aleatorias sin repetir
         selected_images=($(shuf -e "${available_images[@]}" -n $MAX_HISTORY))
 
-        # Guardar las imágenes seleccionadas en el historial
+        # Si el historial ya tiene imágenes, conservar la última imagen y eliminar el resto
+        if [ ${#used_images[@]} -gt 0 ]; then
+            # Guardar la última imagen en el archivo
+            last_image="${used_images[0]}"  # La última imagen usada en el historial
+            selected_images=("$last_image" "${selected_images[@]}")
+        fi
+
+        # Guardar las imágenes seleccionadas en el historial (manteniendo la última imagen al principio)
         echo "${selected_images[@]}" > "$HISTORY_FILE"
 
         # Elegir una imagen aleatoria de las seleccionadas
@@ -356,11 +366,7 @@ choose_fastfetch_logo() {
 
         # Actualizar config.jsonc con la imagen seleccionada
         if [ -f "$CONFIG_FILE" ]; then
-            # Usar flock para evitar condiciones de carrera al escribir en el archivo de configuración
-            (
-                flock -n 200 || exit 1  # Obtén un bloqueo exclusivo (sin bloquear si ya está en uso)
-                sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
-            )
+            sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
         fi
     fi
 }
@@ -368,7 +374,9 @@ choose_fastfetch_logo() {
 # Función para limpiar el historial cuando se cierra la terminal
 clear_history_on_exit() {
     if [ -f "$HISTORY_FILE" ]; then
-        > "$HISTORY_FILE"  # Eliminar el contenido del archivo de historial
+        # Limpiar el archivo de historial dejando solo la última imagen
+        last_image=$(head -n 1 "$HISTORY_FILE")
+        echo "$last_image" > "$HISTORY_FILE"
     fi
 }
 
