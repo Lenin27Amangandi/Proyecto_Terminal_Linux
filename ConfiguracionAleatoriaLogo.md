@@ -309,28 +309,25 @@ choose_fastfetch_logo() {
 }
 ```
 ```bash
-# Elegir imágenes aleatorias de la carpeta de imágenes
+#!/bin/bash
+HISTORY_FILE="$HOME/.config/fastfetch/used_logos.txt"
+ASSETS_DIR="$HOME/.config/fastfetch/assets"
+CONFIG_FILE="$HOME/.config/fastfetch/config.jsonc"
+MAX_HISTORY=5  # Solo recordar las últimas 5 imágenes
+
+# Crear carpetas y archivo de historial si no existen
+mkdir -p "$ASSETS_DIR"
+touch "$HISTORY_FILE"
+
+# Función para elegir un logo de Fastfetch
 choose_fastfetch_logo() {
-    # Definir la imagen predeterminada (la que se usará cuando el historial esté vacío)
-    DEFAULT_IMAGE="$HOME/.config/fastfetch/assets/imagen_predeterminada.png"
-
-    # Verificar que la carpeta de imágenes existe
-    if [ ! -d "$ASSETS_DIR" ]; then
-        echo "Error: la carpeta de imágenes '$ASSETS_DIR' no existe."
-        return
-    fi
-
     # Listar todas las imágenes disponibles
     all_images=($(find "$ASSETS_DIR" -type f))
 
     # Si no hay imágenes, no hacer nada
     if [ ${#all_images[@]} -gt 0 ]; then
         # Leer historial de imágenes usadas
-        if [ -f "$HISTORY_FILE" ]; then
-            used_images=($(cat "$HISTORY_FILE"))
-        else
-            used_images=()  # Si el archivo no existe, no hay imágenes usadas
-        fi
+        used_images=($(cat "$HISTORY_FILE"))
 
         # Filtrar imágenes que no hayan sido usadas
         available_images=()
@@ -348,13 +345,8 @@ choose_fastfetch_logo() {
             > "$HISTORY_FILE"  # Limpiar historial
         fi
 
-        # Si hay menos de 5 imágenes, seleccionar todas las disponibles
-        if [ ${#available_images[@]} -lt $MAX_HISTORY ]; then
-            selected_images=("${available_images[@]}")  # Seleccionar todas las imágenes disponibles
-        else
-            # Seleccionar 5 imágenes aleatorias sin repetir
-            selected_images=($(shuf -e "${available_images[@]}" -n $MAX_HISTORY))
-        fi
+        # Seleccionar 5 imágenes aleatorias sin repetir
+        selected_images=($(shuf -e "${available_images[@]}" -n $MAX_HISTORY))
 
         # Guardar las imágenes seleccionadas en el historial
         echo "${selected_images[@]}" > "$HISTORY_FILE"
@@ -362,22 +354,21 @@ choose_fastfetch_logo() {
         # Elegir una imagen aleatoria de las seleccionadas
         random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"
 
-        # Si es el primer ciclo o el historial está vacío, asignar la imagen predeterminada
-        if [ ${#used_images[@]} -eq 0 ] || [ ! -f "$HISTORY_FILE" ] || [ ! -s "$HISTORY_FILE" ]; then
-            random_img="$DEFAULT_IMAGE"
-        fi
-
-        # Mostrar en consola para depuración
-        echo "Imagen seleccionada: $random_img"
-
         # Actualizar config.jsonc con la imagen seleccionada
         if [ -f "$CONFIG_FILE" ]; then
-            sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
-        else
-            echo "Error: El archivo de configuración '$CONFIG_FILE' no se encuentra."
+            # Usar flock para evitar condiciones de carrera al escribir en el archivo de configuración
+            (
+                flock -n 200 || exit 1  # Obtén un bloqueo exclusivo (sin bloquear si ya está en uso)
+                sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
+            )
         fi
-    else
-        echo "Error: No se encontraron imágenes en '$ASSETS_DIR'."
+    fi
+}
+
+# Función para limpiar el historial cuando se cierra la terminal
+clear_history_on_exit() {
+    if [ -f "$HISTORY_FILE" ]; then
+        > "$HISTORY_FILE"  # Eliminar el contenido del archivo de historial
     fi
 }
 
@@ -386,4 +377,8 @@ if [[ $- == *i* ]]; then
     choose_fastfetch_logo
     fastfetch
 fi
+
+# Limpiar el historial cuando la terminal se cierre (trap en zsh)
+trap clear_history_on_exit EXIT
+
 ```
