@@ -386,3 +386,47 @@ if [[ $- == *i* ]]; then
 fi
 
 ```
+---
+## Version 8 pero con permisos
+```bash
+# ===== Fastfetch: Logo aleatorio automático =====
+ASSETS_DIR="$HOME/.config/fastfetch/assets"
+CONFIG_FILE="$HOME/.config/fastfetch/config.jsonc"
+
+# Crear carpetas si no existen
+mkdir -p "$ASSETS_DIR"
+
+# Función para elegir imágenes aleatorias de la carpeta de imágenes
+choose_fastfetch_logo() {
+    # Usar flock para obtener un bloqueo exclusivo en el archivo de historial y configuración
+    exec 200>$HOME/.config/fastfetch/lockfile  # Crea un archivo de bloqueo
+    flock -n 200 || exit 1  # Intenta obtener el bloqueo, si no lo consigue, sale
+
+    # Listar todas las imágenes disponibles
+    all_images=($(find "$ASSETS_DIR" -type f))
+
+    # Si no hay imágenes, no hacer nada
+    if [ ${#all_images[@]} -gt 0 ]; then
+        # Seleccionar todas las imágenes aleatorias disponibles sin límite
+        selected_images=($(shuf -e "${all_images[@]}"))  # Sin límite, elige todas
+
+        # Elegir una imagen aleatoria de las seleccionadas
+        random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"  # Selecciona una aleatoria de todas
+
+        # Actualizar config.jsonc con la imagen seleccionada
+        if [ -f "$CONFIG_FILE" ]; then
+            sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
+        fi
+    fi
+
+    # Liberar el bloqueo después de terminar
+    flock -u 200
+    exec 200>&-  # Cerrar el descriptor de archivo
+}
+
+# Ejecutar la aplicación de Fastfetch cada vez que se abre una terminal
+if [[ $- == *i* ]]; then
+    choose_fastfetch_logo
+    fastfetch
+fi
+```
