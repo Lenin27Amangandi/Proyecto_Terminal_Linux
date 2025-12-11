@@ -310,56 +310,26 @@ choose_fastfetch_logo() {
 ```
 
 ---
-## Guardando la ultima
+## Guardando la ultima pero a costa de que se repitan las imagenes
 ```bash
+
 # ===== Fastfetch: Logo aleatorio automático =====
-HISTORY_FILE="$HOME/.config/fastfetch/used_logos.txt"
 ASSETS_DIR="$HOME/.config/fastfetch/assets"
 CONFIG_FILE="$HOME/.config/fastfetch/config.jsonc"
 MAX_HISTORY=5  # Solo recordar las últimas 5 imágenes
 
-# Crear carpetas y archivo de historial si no existen
+# Crear carpetas si no existen
 mkdir -p "$ASSETS_DIR"
-touch "$HISTORY_FILE"
 
-# Función para elegir un logo de Fastfetch
+# Elegir 5 imágenes aleatorias de la carpeta de imágenes
 choose_fastfetch_logo() {
     # Listar todas las imágenes disponibles
     all_images=($(find "$ASSETS_DIR" -type f))
 
     # Si no hay imágenes, no hacer nada
     if [ ${#all_images[@]} -gt 0 ]; then
-        # Leer historial de imágenes usadas
-        used_images=($(cat "$HISTORY_FILE"))
-
-        # Filtrar imágenes que no hayan sido usadas
-        available_images=()
-        for img in "${all_images[@]}"; do
-            skip=false
-            for used in "${used_images[@]}"; do
-                [[ "$img" == "$used" ]] && skip=true && break
-            done
-            $skip || available_images+=("$img")
-        done
-
-        # Si ya se usaron todas las imágenes disponibles, reiniciar el historial
-        if [ ${#available_images[@]} -eq 0 ]; then
-            available_images=("${all_images[@]}")  # Usar todas las imágenes
-            > "$HISTORY_FILE"  # Limpiar historial
-        fi
-
         # Seleccionar 5 imágenes aleatorias sin repetir
-        selected_images=($(shuf -e "${available_images[@]}" -n $MAX_HISTORY))
-
-        # Si el historial ya tiene imágenes, conservar la última imagen y eliminar el resto
-        if [ ${#used_images[@]} -gt 0 ]; then
-            # Guardar la última imagen en el archivo
-            last_image="${used_images[0]}"  # La última imagen usada en el historial
-            selected_images=("$last_image" "${selected_images[@]}")
-        fi
-
-        # Guardar las imágenes seleccionadas en el historial (manteniendo la última imagen al principio)
-        echo "${selected_images[@]}" > "$HISTORY_FILE"
+        selected_images=($(shuf -e "${all_images[@]}" -n $MAX_HISTORY))
 
         # Elegir una imagen aleatoria de las seleccionadas
         random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"
@@ -371,22 +341,10 @@ choose_fastfetch_logo() {
     fi
 }
 
-# Función para limpiar el historial cuando se cierra la terminal
-clear_history_on_exit() {
-    if [ -f "$HISTORY_FILE" ]; then
-        # Limpiar el archivo de historial dejando solo la última imagen
-        last_image=$(head -n 1 "$HISTORY_FILE")
-        echo "$last_image" > "$HISTORY_FILE"
-    fi
-}
-
 # Ejecutar la aplicación de Fastfetch cada vez que se abre una terminal
 if [[ $- == *i* ]]; then
     choose_fastfetch_logo
     fastfetch
 fi
-
-# Limpiar el historial cuando la terminal se cierre (trap en zsh)
-trap clear_history_on_exit EXIT
 
 ```
