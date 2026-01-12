@@ -1,0 +1,63 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
+  "logo": {
+	    "type": "kitty-direct",
+        "source": "$(/home/xander/.config/fastfetch/fastfetch.sh)",
+        "width": 25,
+        "height": 15,	
+	    "padding": {
+    		"top": 1,
+            "left":1
+    	},
+  },
+
+  "display": {
+    "separator": " "
+  },
+  "modules": [
+    "break",
+    {
+        "type": "os",
+        "key":  "\u001b[31m│\u001b[0m \u001b[37m󰧨 \u001b[0m"
+    },
+    {
+        "type": "kernel",
+        "key":  "\u001b[31m│\u001b[0m \u001b[33m󰻀 \u001b[0m",
+        "keyColor": "yellow"
+    },
+    {
+        "type": "uptime",
+        "key": "\u001b[31m│\u001b[0m \u001b[34m \u001b[0m",
+        "keyColor": "cyan"
+    },
+    "break",
+    {
+        "type": "chassis",
+        "key": "\u001b[35m│\u001b[0m \u001b[31m \u001b[0m"
+    },
+    {
+        "type": "packages",
+        "key": "\u001b[35m│\u001b[0m \u001b[32m \u001b[0m"
+    },
+    {
+        "type": "shell",
+        "key": "\u001b[35m│\u001b[0m \u001b[33m \u001b[0m"
+    },
+    "break",
+    {
+        "type": "cpu",
+        "key": "\u001b[93m│\u001b[0m \u001b[34m \u001b[0m"
+    },
+    {
+        "type": "gpu",
+        "key": "\u001b[93m│\u001b[0m \u001b[35m󱤓 \u001b[0m"
+    },
+    {
+        "type": "memory",
+        "key": "\u001b[93m│\u001b[0m \u001b[31m \u001b[0m",
+        "keyColor": "white"
+    },
+    "break"
+  ]
+}
