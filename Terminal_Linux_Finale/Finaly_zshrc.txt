@@ -1,0 +1,72 @@
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+
+# Path to your Oh My Zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
+
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time Oh My Zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+
+# ZSH_THEME="darkblood"
+ZSH_THEME="gnzh"
+
+
+# Ejecutar Codigo para generar una imagen random
+
+#choose_fastfetch_logo() {
+    # Carpeta donde están las imágenes
+#local img_dir="$HOME/.config/fastfetch/assets"
+
+    #Elegir imagen aleatoria
+#    local random_img=$(ls "$img_dir" | shuf -n 1)
+
+#    local img_path="$img_dir/$random_img"
+#    sed -i "s#\"source\": \".*\"#\"source\": \"$img_path\"#" "$HOME/.config/fastfetch/config.jsonc"
+#}
+
+
+plugins=(git)
+
+source $ZSH/oh-my-zsh.sh
+
+
+# ===== Fastfetch: Logo aleatorio automático =====
+#ASSETS_DIR="$HOME/.config/fastfetch/assets"
+#CONFIG_FILE="$HOME/.config/fastfetch/config.jsonc"
+
+# Crear carpetas si no existen
+#mkdir -p "$ASSETS_DIR"
+
+# Elegir imágenes aleatorias de la carpeta de imágenes
+#choose_fastfetch_logo() {
+#    # Listar todas las imágenes disponibles
+#    all_images=($(find "$ASSETS_DIR" -type f))
+
+    # Si no hay imágenes, no hacer nada
+    #if [ ${#all_images[@]} -gt 0 ]; then
+        # Seleccionar todas las imágenes aleatorias disponibles
+        #selected_images=($(shuf -e "${all_images[@]}"))
+
+        # Elegir una imagen aleatoria de las seleccionadas
+#        random_img="${selected_images[RANDOM % ${#selected_images[@]}]}"
+        # Actualizar config.jsonc con la imagen seleccionada
+#        if [ -f "$CONFIG_FILE" ]; then
+#            sed -i "s#\"source\": \".*\"#\"source\": \"$random_img\"#" "$CONFIG_FILE"
+#        fi
+#    fi
+#}
+
+# Ejecutar la aplicación de Fastfetch cada vez que se abre una terminal
+#if [[ $- == *i* ]]; then
+#    choose_fastfetch_logo
+#    fastfetch
+#fi
+
+# Ejecutar la aplicación de Fastfetch cada vez que se abre una terminal
+if [[ $- == *i* ]]; then
+    fastfetch
+fi
+
+
