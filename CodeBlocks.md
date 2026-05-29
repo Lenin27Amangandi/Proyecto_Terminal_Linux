@@ -89,3 +89,109 @@ yt-mp3 () {
   rm -rf "$tmpdir"
 }
 ```
+
+```bash
+#!/usr/bin/env bash
+
+echo "🔍 Configurando entorno musical en Zorin OS..."
+
+# =========================
+# 1. Dependencias básicas
+# =========================
+
+MISSING=()
+
+command -v yt-dlp >/dev/null 2>&1 || MISSING+=("yt-dlp")
+command -v ffmpeg >/dev/null 2>&1 || MISSING+=("ffmpeg")
+command -v zsh >/dev/null 2>&1 || MISSING+=("zsh")
+command -v git >/dev/null 2>&1 || MISSING+=("git")
+
+if [ ${#MISSING[@]} -ne 0 ]; then
+  echo "❌ Faltan paquetes: ${MISSING[*]}"
+  read -p "¿Instalar? (y/n): " CONFIRM
+
+  if [[ "$CONFIRM" == "y" ]]; then
+    sudo apt update
+
+    for pkg in "${MISSING[@]}"; do
+      case $pkg in
+        yt-dlp)
+          sudo apt install -y yt-dlp || pip install -U yt-dlp
+          ;;
+        ffmpeg)
+          sudo apt install -y ffmpeg
+          ;;
+        zsh)
+          sudo apt install -y zsh
+          ;;
+        git)
+          sudo apt install -y git
+          ;;
+      esac
+    done
+  else
+    echo "🚫 Cancelado."
+    exit 1
+  fi
+fi
+
+# =========================
+# 2. Cambiar shell a zsh
+# =========================
+
+CURRENT_SHELL=$(basename "$SHELL")
+
+if [ "$CURRENT_SHELL" = "bash" ]; then
+  echo "⚠️ Estás usando bash."
+  read -p "¿Cambiar a zsh? (y/n): " ZSHCONFIRM
+
+  if [[ "$ZSHCONFIRM" == "y" ]]; then
+    chsh -s "$(which zsh)"
+    echo "✅ Shell cambiado a zsh (reinicia sesión)."
+  fi
+fi
+
+# =========================
+# 3. Instalar Oh My Zsh
+# =========================
+
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  echo "📦 Instalando Oh My Zsh..."
+
+  RUNZSH=no KEEP_ZSHRC=yes \
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+# =========================
+# 4. Instalar Powerlevel10k
+# =========================
+
+ZSH_CUSTOM=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
+
+if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
+  echo "🎨 Instalando Powerlevel10k..."
+
+  git clone --depth=1 \
+  https://github.com/romkatv/powerlevel10k.git \
+  "$ZSH_CUSTOM/themes/powerlevel10k"
+fi
+
+# =========================
+# 5. Configurar tema en .zshrc
+# =========================
+
+echo "⚙️ Configurando tema en .zshrc..."
+
+if grep -q "ZSH_THEME=" "$HOME/.zshrc"; then
+  sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$HOME/.zshrc"
+else
+  echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> "$HOME/.zshrc"
+fi
+
+# =========================
+# 6. Mensaje final
+# =========================
+
+echo "🎧 Todo listo."
+echo "👉 Reinicia la terminal y ejecuta: p10k configure"
+``
