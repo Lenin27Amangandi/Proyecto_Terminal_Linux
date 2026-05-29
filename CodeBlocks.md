@@ -63,3 +63,29 @@ int main(int argc, char** argv) {
 EOF
 
 echo -e "${VERDE}Listo. Ya tienes todo instalado y tu archivo 'main.cpp' creado en este directorio.${SIN_COLOR}"
+
+
+
+
+```bash
+yt-mp3 () {
+  tmpdir="$(mktemp -d)"
+
+  yt-dlp -f "bestaudio" -x --audio-format mp3 \
+  --cookies-from-browser brave \
+  --embed-thumbnail \
+  --add-metadata \
+  -o "$tmpdir/%(artist|uploader)s - %(title)s [%(album|NA)s] - %(track_number|0)s.%(ext)s" \
+  --restrict-filenames "$@"
+
+  for f in "$tmpdir"/*.mp3; do
+    [ -e "$f" ] || continue
+
+    ffmpeg -i "$f" -map_metadata -1 -c copy "${f%.mp3}_clean.mp3" >/dev/null 2>&1
+    mv "${f%.mp3}_clean.mp3" .
+
+  done
+
+  rm -rf "$tmpdir"
+}
+```
